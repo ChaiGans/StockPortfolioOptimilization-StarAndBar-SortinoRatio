@@ -1,5 +1,23 @@
 import itertools
 
+def calculate_annualized_return(annual_returns):
+    """
+    Calculate the annualized return given a list of annual returns.
+
+    Parameters:
+    annual_returns (list): List of annual returns (expressed as percentages).
+
+    Returns:
+    float: The annualized return.
+    """
+    compounded_return = 1
+    for return_percent in annual_returns:
+        compounded_return *= (1 + return_percent / 100)
+    
+    years = len(annual_returns)
+    
+    return ((compounded_return ** (1 / years)) - 1)*100
+
 def calculate_downside_deviation(downside_rates):
     if not downside_rates:
         return 0  # Avoid division by zero if the list is empty
@@ -13,7 +31,7 @@ def get_sortino_ratio(expected_return, downside_deviation):
     """Calculates the Sortino Ratio for a given expected return and downside deviation."""
     if downside_deviation == 0:
         return float('inf')  # Prevent division by zero
-    return expected_return / downside_deviation
+    return (expected_return-2.5) / downside_deviation # 2.5% is risk free rate
 
 def get_user_inputs():
     """Gets and processes user inputs."""
@@ -47,7 +65,7 @@ def generate_combinations(interested_stocks, stock_data, total_investment, min_i
     return all_combinations
 
 def find_best_combination(all_combinations, sortino_ratios):
-    """Finds the best stock combination based on the closest Sortino Ratio to zero."""
+    """Finds the best stock combination based on the highest number of Sortino Ratio."""
     best_combo = None
     best_ratio = -1
 
@@ -70,20 +88,19 @@ stock_data = {
     # Example: 'STOCK_CODE': {'price': ..., 'DD': ...}
     # Fill this with static data
     # DD is One last year downside percentage
-    'BBCA': {'price': 8800, 'DD': [0,0,0,0,-0.28]},
-    'BMRI': {'price': 5800, 'DD': [0,-17.59,0,0,0]},
-    'BBNI': {'price': 5225, 'DD': [-10.8,-21.34,0,0,0]},
-    'BBRI': {'price': 5425, 'DD': [0,-5.23,0,0,0]},
-    'BBTN': {'price': 1265, 'DD': [-28.85,-16.54,-18.63,-19.07,-9.26]},
-    'BBHI': {'price': 1420, 'DD': [-26.9,0,0,-55.4,-23.51]},
-    'AGRO': {'price': 308, 'DD': [-36.13,0,0,-77.68,-26.24]},
-    'BJTM': {'price': 615, 'DD': [-0.72,-0.73,0,-5.33,-13.38]},
-    'BGTG': {'price': 78, 'DD': [-19.51,0,0,-62.72,-9.2]},
-    'ASII': {'price': 5725, 'DD': [-15.81,-13.00,-5.39,0,-0.44]},
-    'BRIS': {'price': 1740, 'DD': [-37.14,0,-20.89,-25.69,0]},
+    'BBCA': {'price': 8800, 'DD': [0,0,0,0,-0.28], 'AR': [28.56,1.27,7.83,17.12,2.63]},
+    'BMRI': {'price': 5800, 'DD': [0,-17.59,0,0,0], 'AR': [4.07,-17.59,11.07,41.28,15.37]},
+    'BBNI': {'price': 5225, 'DD': [-10.8,-21.34,0,0,0], 'AR': [-10.8,-21.34,9.31,36.37,10.57]},
+    'BBRI': {'price': 5425, 'DD': [0,-5.23,0,0,0], 'AR': [20.22,-5.23,1.03,20.19,10.32]}, 
+    'BBTN': {'price': 1265, 'DD': [-28.85,-16.54,-18.63,-19.07,-9.26], 'AR': [-16.54,-18.63,0.29,-19.07,-10.00]},
+    'AGRO': {'price': 308, 'DD': [-36.13,0,0,-77.68,-26.24], 'AR': [-36.13,422.73,78.74,-77.68,-27.72]},
+    'BJTM': {'price': 615, 'DD': [-0.72,-0.73,0,-5.33,-13.38], 'AR': [-0.72,-0.73,10.29,-5.33,-13.38]},
+    'BGTG': {'price': 78, 'DD': [-19.51,0,0,-62.72,-9.2], 'AR': [-19.51,12.12,229.73,-62.72,-9.2]},
+    'ASII': {'price': 5725, 'DD': [-15.81,-13.00,-5.39,0,-0.44], 'AR': [-15.81,-13.00,-5.39,0,-0.88]},
+    'BRIS': {'price': 1740, 'DD': [-37.14,0,-20.89,-25.69,0], 'AR': [-37.14,581.82,-20.89,-25.69,28.68]},
 }
 
-sortino_ratios = {stock: get_sortino_ratio(target_return, calculate_downside_deviation(stock_data[stock]['DD'])) for stock in stock_data}
+sortino_ratios = {stock: get_sortino_ratio(calculate_annualized_return(stock_data[stock]['AR']), calculate_downside_deviation(stock_data[stock]['DD'])) for stock in stock_data}
 min_investment = calculate_min_investment(interested_stocks, stock_data, total_investment)
 all_combinations = generate_combinations(interested_stocks, stock_data, total_investment, min_investment)
 best_combo = find_best_combination(all_combinations, sortino_ratios)
