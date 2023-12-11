@@ -37,8 +37,7 @@ def get_user_inputs():
     """Gets and processes user inputs."""
     interested_stocks = input("Enter the stock codes you're interested in (separated by space): ").split()
     total_investment = float(input("Enter your total investment amount: "))
-    target_return = float(input("Enter your target return (in percentage): ")) / 100
-    return interested_stocks, total_investment, target_return
+    return interested_stocks, total_investment
 
 def calculate_min_investment(interested_stocks, stock_data, total_investment):
     """Calculates the minimum investment required to optimize the portfolio."""
@@ -82,12 +81,13 @@ def find_best_combination(all_combinations, sortino_ratios):
     return best_combo
 
 # Main code
-interested_stocks, total_investment, target_return = get_user_inputs()
+interested_stocks, total_investment = get_user_inputs()
+
 # Static data setup for each stock
 stock_data = {
     # Example: 'STOCK_CODE': {'price': ..., 'DD': ...}
-    # Fill this with static data
-    # DD is One last year downside percentage
+    # DD is last five year downside percentage
+    # AR is last five year price movement percentage
     'BBCA': {'price': 8800, 'DD': [0,0,0,0,-0.28], 'AR': [28.56,1.27,7.83,17.12,2.63]},
     'BMRI': {'price': 5800, 'DD': [0,-17.59,0,0,0], 'AR': [4.07,-17.59,11.07,41.28,15.37]},
     'BBNI': {'price': 5225, 'DD': [-10.8,-21.34,0,0,0], 'AR': [-10.8,-21.34,9.31,36.37,10.57]},
